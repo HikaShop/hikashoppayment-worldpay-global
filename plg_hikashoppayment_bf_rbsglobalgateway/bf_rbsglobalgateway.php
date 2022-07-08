@@ -59,13 +59,13 @@ class plgHikashoppaymentbf_rbsglobalgateway extends JPlugin {
 	}
 	function onBeforeOrderCreate(&$order,&$do) {
 		$app = JFactory::getApplication();
-		if($app->isAdmin()) {
+		if(hikashop_isClient('administrator')) {
 			return true;
 		}
 		if(empty($order->order_payment_method) || $order->order_payment_method!='bf_rbsglobalgateway') return;
 		if (!$this->isShippingValid(@$order->cart->shipping)) {
 			$do = false;
-			JError::raiseWarning(100, 'Error - This payment method is not available with the selected shipping method.' );
+			$app->enqueueMessage('Error - This payment method is not available with the selected shipping method.', 'error' );
 		}
 		if(!function_exists('curl_init')){
 			$app->enqueueMessage('The WorldPay Global Gateway payment plugin needs the CURL library installed but it seems that it is not available on your server. Please contact your web hosting to set it up.','error');
@@ -234,7 +234,7 @@ class plgHikashoppaymentbf_rbsglobalgateway extends JPlugin {
 					case 'mac':
 					case 'jlbz':
 					case 'view':
-						$value = JRequest::getString($key);
+						$value = hikaInput::get()->getString($key);
 						$vars[$key] = $value;
 						$data[] = $key . '=' . urlencode($value);
 						break;
@@ -302,7 +302,7 @@ class plgHikashoppaymentbf_rbsglobalgateway extends JPlugin {
 		$order_text .= "\r\n".str_replace('<br/>',"\r\n",JText::sprintf('ACCESS_ORDER_WITH_LINK',$url));
 		if($element->payment_params->debug) echo print_r($dbOrder,true)."\n\n\n";
 		$mailer = JFactory::getMailer();
-		$config =& hikashop_config();
+		$config = hikashop_config();
 		$sender = array(
 				$config->get('from_email'),
 				$config->get('from_name')
@@ -385,8 +385,7 @@ class plgHikashoppaymentbf_rbsglobalgateway extends JPlugin {
 		}
 		$app = JFactory::getApplication();
  		if (!empty($message)) {
-			 $app->set( '_messageQueue', '' );
-			 JError::raiseNotice(100, $message);
+			$app->enqueueMessage($message);
 		}
  		if (!empty($url)) {
 			if (empty($element->payment_params->showVars)) $app->redirect($url);
@@ -406,7 +405,7 @@ class plgHikashoppaymentbf_rbsglobalgateway extends JPlugin {
 		return true;
 	}
 	function onPaymentConfiguration(&$element){
-		$this->bf_rbsglobalgateway = JRequest::getCmd('name','bf_rbsglobalgateway');
+		$this->bf_rbsglobalgateway = hikaInput::get()->getCmd('name','bf_rbsglobalgateway');
 		if(empty($element)){
 			$element = new stdClass();
 			$element->payment_name='Worldpay Global Gateway';
