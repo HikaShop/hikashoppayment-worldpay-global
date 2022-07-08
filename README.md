@@ -1,4 +1,3 @@
-**The RBS Global Gateway API is no more and this plugin is not supported anymore. If you have it on your website, please uninstall it or disable it.**
 
 # HikaShop WorldPay Global Gateway
 
